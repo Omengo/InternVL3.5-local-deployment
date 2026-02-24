@@ -1,12 +1,12 @@
-InternVL3.5 Video Action Recognition
-This repository contains the implementation and deployment guide for InternVL3.5, focused on video-based action recognition for battery disassembly tasks. It specifically addresses identifying actions such as bolt unscrewing with high precision.
+InternVL3.5-2B Video Action Recognition for Battery Disassembly
+This repository provides a comprehensive implementation and deployment guide for InternVL3.5-2B, specifically optimized for high-precision action recognition in Electric Vehicle (EV) battery disassembly tasks. The system leverages Chain-of-Thought (CoT) reasoning to identify complex industrial actions, such as bolt unscrewing, with high accuracy.
 
 📋 Table of Contents
-Hardware & Software Requirements
+Environment
 
-Installation
+Detailed Tutorial
 
-Deployment
+Core Scripts & Parameter Tuning
 
 Inference & Testing
 
@@ -14,83 +14,118 @@ Project Insights
 
 Contributors
 
-💻 Hardware & Software Requirements
+Environment
+Example Environment
+
 Hardware
-To ensure smooth inference and video processing, the following hardware is recommended:
 
-GPU: NVIDIA RTX 4090 (24GB VRAM) or equivalent. The 2B model requires at least 8GB VRAM for bfloat16 inference.
+CPU: Intel Core i9-13900k or equivalent.
 
-System RAM: 32GB (Minimum 16GB).
+GPU: NVIDIA RTX 4090 24 GiB (Driver version >= 527.41).
 
-Storage: At least 20GB of free disk space for model weights and dependencies.
+Memory: 64GiB RAM (Minimum 16GB required for inference).
+
+Software
 
 OS: Windows 10/11 or Linux.
 
 Python: 3.8.10 (Recommended for package compatibility).
 
-CUDA: 12.x.
+CUDA: 12.x (PyTorch compatible).
 
-🛠 Installation
-Note: To maintain environment consistency, it is recommended to use the existing system environment without creating a new virtual environment if preferred by the user.
+PyTorch: 2.2.2.
 
-1. Install PyTorch
-Install the version compatible with CUDA 12.x:
-
-2.1 Dependency Setup
-This project is designed to run in your existing environment without the need for a new virtual environment.
-
-Step 1: Install PyTorch (CUDA 12.x compatible)
+Detailed Tutorial
+1. Verifying GPU Configuration
+Before installation, verify your CUDA installation and GPU status:
 
 Bash
-pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121
-Step 2: Install Multi-modal & Video Libraries
+# Check CUDA version
+nvcc -V
 
-Bash
-
-2.2 Environment Verification
-Run the diagnostic script to ensure your GPU and libraries are correctly configured:
-
-Bash
+# Verify GPU and Quantization Library (bitsandbytes)
 python scripts/debug_gpu.py
-visualizer = dict(type='ActionVisualizer', vis_backends=vis_backends)
+The debug_gpu.py script checks for CUDA availability and ensures the bitsandbytes library is correctly imported for 4-bit/8-bit quantization.
 
-3. Model Preparation
-Download Weights: Download the InternVL3.5-2B weights from HuggingFace.
+2. Setting Up the Directory Structure
+To ensure scripts correctly locate the model and data, organize your folders as follows:
 
-Directory Structure: Create a model folder in the root directory.
+Plaintext
+InternVL-Project/
+── model/ 
+------VL3.5-2b/          # Downloaded HuggingFace weights here
+── examples/              # Input videos (e.g., test_video3.mp4)
+---─ scripts/               # Project Python scripts
+--outputs/               # Result logs and annotated videos
+3. Installation
+This project is designed to run in your existing environment without the need for a new virtual environment if preferred. Install the core dependencies below:
 
-Path: InternVL-Project/model/VL3.5-2b/.
+Bash
+# Install PyTorch for CUDA 12.1
+pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121
 
-Ensure all .json, .safetensors, and .py files from HuggingFace are inside this folder.
+# Install InternVL & Multi-modal Libraries
+pip install transformers accelerate timm
 
-🚀 Core Features & Usage
-A. High-Precision Battery Analysis (Recommended)
-This mode uses a Chain-of-Thought (CoT) prompt to force the model to identify "Action-Component-Tool" triplets with scoring against ground truth.
+# Install Video Processing Tools
+pip install decord opencv-python pillow
+Core Scripts & Parameter Tuning
+A. High-Precision Battery Analysis (analysis_battery.py)
+This script uses Chain-of-Thought (CoT) prompts to force the model to analyze worker hands, tools, and components before reaching a final conclusion.
 
-Command: python scripts/analysis_battery.py.
+How to adjust parameters:
 
-Key Logic: Scans every 2s using a 6s window for maximum capture density.
+CLIP_DURATION = 6.0: Set the window size in seconds. 6s is chosen to ensure a complete disassembly action is visible.
 
-B. Real-Time Detection & Visualization
-Generates an annotated video with bounding boxes and real-time detection statistics.
+STRIDE = 2.0: The overlap interval. A 2s stride ensures high density so no momentary actions are missed.
 
-Command: python scripts/video_analysis_system.py.
+NUM_FRAMES = 12: Number of frames sampled per clip. Increase this for videos with fast tool movements.
 
-Output: Produces output_real_time_detection.mp4.
+Run Command:
 
-C. Temporal Segmentation Report
-Generates a timestamped text report for easy documentation.
+Bash
+python scripts/analysis_battery.py
+B. Real-Time Visualization (video_analysis_system.py)
+Generates an annotated video with bounding boxes for actions, components, and tools, including live detection statistics.
 
-Command: python scripts/temporal_analysis.py.
+How to adjust parameters:
 
-Interval: Default is a 5s window for stable activity description.
+DETECTION_INTERVAL = 5: Sets how often (in frames) the model performs detection. Set to 1 for every frame (slower) or higher for faster processing.
 
-📈 Project Insights
-Video Performance: InternVL3.5 shows promising results on videos ranging from 5 seconds to 4.5 minutes.
+Run Command:
 
-Known Limitations: Inference results for videos around 3 minutes have shown some instability; further optimization is ongoing.
+Bash
+python scripts/video_analysis_system.py
+C. Temporal Segmentation (temporal_analysis.py)
+Generates a timestamped text report using a predefined vocabulary to ensure consistency.
 
-👥 Contributors
-Qingfeng (Lead for InternVL3.5 research and deployment).
+How to adjust parameters:
+
+SEGMENT_DURATION = 5: The duration of each report segment. Adjust based on the pace of the operation.
+
+Run Command:
+
+Bash
+python scripts/temporal_analysis.py
+Inference & Testing
+Action Labeling Convention
+All training and inference must strictly follow the project's standardized naming convention to ensure data alignment:
+
+✅ Recommended: 0_unscrewing-bolt
+
+❌ Legacy (Do Not Use): remove the cover
+
+Testing Model Loading
+To verify the model can load into VRAM and perform basic chat:
+
+Bash
+python scripts/test_minimal.py
+Project Insights
+Video Performance: InternVL3.5 shows stable results on video segments ranging from 5 seconds to 4.5 minutes.
+
+Known Limitations: Inference on videos around the 3-minute mark has shown occasional instability; further optimization of sampling frames is ongoing.
+
+Contributors
+Qingfeng: Lead for InternVL3.5 research, local deployment, and CoT precision tuning.
 
 
