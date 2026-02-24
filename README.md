@@ -46,11 +46,7 @@ pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https
 Step 2: Install Multi-modal & Video Libraries
 
 Bash
-# Core Frameworks
-pip install transformers accelerate timm
 
-# Video Processing (Essential)
-pip install decord opencv-python pillow
 2.2 Environment Verification
 Run the diagnostic script to ensure your GPU and libraries are correctly configured:
 
