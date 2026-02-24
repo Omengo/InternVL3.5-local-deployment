@@ -23,11 +23,11 @@ CPU: Intel Core i9-13900k or equivalent.
 
 GPU: NVIDIA RTX 4090 24 GiB (Driver version >= 527.41).
 
-Memory: 64GiB RAM (Minimum 16GB required for inference).
+Memory: 32GiB RAM (Minimum 16GB required for inference).
 
 Software
 
-OS: Windows 10/11 or Linux.
+OS: Windows 10/11 .
 
 Python: 3.8.10 (Recommended for package compatibility).
 
@@ -109,7 +109,7 @@ Bash
 python scripts/temporal_analysis.py
 Inference & Testing
 Action Labeling Convention
-All training and inference must strictly follow the project's standardized naming convention to ensure data alignment:
+All inference must strictly follow the project's standardized naming convention to ensure data alignment:
 
 ✅ Recommended: 0_unscrewing-bolt
 
