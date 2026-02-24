@@ -1,14 +1,86 @@
-InternVL3.5-2B Video Analysis System for Battery DisassemblyThis repository provides a professional local deployment guide and a comprehensive suite of tools for analyzing Electric Vehicle (EV) battery disassembly videos. Powered by InternVL3.5-2B, the system excels at high-precision action recognition and component localization through Chain-of-Thought (CoT) reasoning.1. 💻 Hardware & Software RequirementsHardware SpecificationsGPU: NVIDIA RTX 4090 (24GB VRAM) recommended. The 2B model requires a minimum of 8GB VRAM for bfloat16 inference.System RAM: 32GB (Minimum 16GB).Storage: At least 20GB for model weights and cache.Software EnvironmentOS: Windows 10/11 or Linux.Python: 3.8.10 (Strictly recommended for library compatibility).CUDA: 12.x series.2. ⚙️ Installation & SetupNote: This project is designed to run in your existing environment. No new virtual environment is required.Step 1: Core DependenciesInstall the required versions of PyTorch and multi-modal libraries:Bash# Install PyTorch (CUDA 12.1 compatible)
+InternVL3.5 Video Action Recognition
+This repository contains the implementation and deployment guide for InternVL3.5, focused on video-based action recognition for battery disassembly tasks. It specifically addresses identifying actions such as bolt unscrewing with high precision.
+
+📋 Table of Contents
+Hardware & Software Requirements
+
+Installation
+
+Deployment
+
+Inference & Testing
+
+Project Insights
+
+Contributors
+
+💻 Hardware & Software Requirements
+Hardware
+CPU: Intel Core i9-13900k or equivalent.
+
+GPU: NVIDIA RTX 4090 24GiB (Driver version >= 527.41).
+
+Memory: 64GiB.
+
+Software
+OS: Windows 10/Linux.
+
+Python: 3.8.10 (Recommended for package compatibility).
+
+CUDA: 12.x.
+
+🛠 Installation
+Note: To maintain environment consistency, it is recommended to use the existing system environment without creating a new virtual environment if preferred by the user.
+
+1. Install PyTorch
+Install the version compatible with CUDA 12.x:
+
+Bash
 pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121
+2. Install OpenMMLab Tools
+Bash
+pip install -U openmim
+mim install mmengine
+mim install mmcv==2.1.0
+mim install mmdet
+3. Install MMAction2 from Source
+Bash
+git clone https://github.com/open-mmlab/mmaction2.git
+cd mmaction2
+pip install -v -e .
+🚀 Deployment
+Configuration
+Update your configuration file (e.g., swinlarge.py) to include visualization backends:
 
-# Install InternVL Frameworks
-pip install transformers accelerate timm
+Python
+vis_backends = [
+    dict(type='LocalVisBackend'),
+    dict(type='TensorboardVisBackend'),
+    dict(type='WandbVisBackend')
+]
+visualizer = dict(type='ActionVisualizer', vis_backends=vis_backends)
+🧪 Inference & Testing
+Running Inference
+To run action recognition on a specific video (e.g., testclip_6.mp4), use the following command:
 
-# Install Video Processing Tools
-pip install decord opencv-python pillow
-Step 2: Model WeightsDownload the InternVL3.5-2B weights from HuggingFace.Place the files in a dedicated directory: InternVL-Project/model/VL3.5-2b/.3. 🚀 Core Scripts & Parameter TuningA. analysis_battery.py (High-Precision Analysis)This is the core script for battery disassembly, utilizing Chain-of-Thought (CoT) to force detailed observation before reaching a conclusion.ParameterDefaultPurposeCLIP_DURATION6.0Length of the video segment (in seconds) the model views at once. 6s ensures full actions are captured.STRIDE2.0The gap between scans. 2s creates high overlap to ensure no brief actions are missed.NUM_FRAMES12Number of frames sampled per clip. High frame counts help the model see tool details like ratchets.B. video_analysis_system.py (Real-Time Visualization)Generates an annotated video with bounding boxes and live statistics.ParameterDefaultPurposeDETECTION_INTERVAL5Specifies how many frames to skip between detections. Set to 1 for maximum accuracy but slower speed.max_new_tokens800Limits the response length for JSON parsing of bounding box coordinates.C. temporal_analysis.py (Timeline Reporting)Produces a timestamped text report structured by project-approved terminology.⚠️ 4. Research & Naming StandardsTo ensure data alignment, all users must adhere to the following labeling conventions established by Qingfeng:✅ Standard Action: 0_unscrewing-bolt (Replaces "remove the cover").✅ Standard Action: removing-battery-cover.✅ Components: battery_module, bus_bar, bracket_plate.✅ Tools: ratchet, screwdriver, hands.🛠️ Deployment & ExecutionEnvironment Check: Run scripts/debug_gpu.py to confirm CUDA status and bitsandbytes availability.Basic Chat Test: Run scripts/test_minimal.py to verify the 2B model loads correctly into VRAM.Run Analysis:Bash# For detailed battery analysis
-python scripts/analysis_battery.py
+Bash
+python VisualCM.py \
+    ./configs/recognition/swin/swinlarge.py \
+    ./checkpoints/best_acc_epoch.pth \
+    ./data/testclip_6.mp4 \
+    --out-video ./outputs/result.mp4 \
+    --label-file ./datasets/label_file.txt
+Action Labeling Convention
+Ensure all labels follow the project naming convention:
 
-# For real-time visual detection
-python scripts/video_analysis_system.py
-👥 ContributorsQingfeng: Lead Developer (Local Deployment, Precision Tuning, CoT Logic).Matthew: Collaborator (Repository Maintenance, Integration with VideoLLaMA2).
+Use 0_unscrewing-bolt instead of "remove the cover".
+
+📈 Project Insights
+Video Performance: InternVL3.5 shows promising results on videos ranging from 5 seconds to 4.5 minutes.
+
+Known Limitations: Inference results for videos around 3 minutes have shown some instability; further optimization is ongoing.
+
+👥 Contributors
+Qingfeng (Lead for InternVL3.5 research and deployment).
+
+Matthew (Collaborator for VideoLLaMA2 and Repo Maintenance).
