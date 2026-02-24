@@ -47,18 +47,37 @@ nvcc -V
 python scripts/debug_gpu.py
 The debug_gpu.py script checks for CUDA availability and ensures the bitsandbytes library is correctly imported for 4-bit/8-bit quantization.
 
-2. Setting Up the Directory Structure
-To ensure scripts correctly locate the model and data, organize your folders as follows:
+🛠 Installation Guide
+Note: To maintain environment consistency, it is recommended to install these dependencies in your existing system environment. No new virtual environment is required.
+
+1. Install PyTorch
+Install the version compatible with CUDA 12.x:
+
+Bash
+pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cu121
+2. Install Frameworks & Video Utilities
+Bash
+# Multi-modal libraries
+pip install transformers accelerate timm
+
+# Video processing (Essential for frame sampling)
+pip install decord opencv-python pillow
+
+📥 Model Download & Weight Setup
+The model weights are the core of this system. Please follow these steps carefully:
+
+1. Download Model Weights
+Download the full InternVL3.5-2B weights from HuggingFace:
+
+Link: OpenGVLab/InternVL3_5-2B
+
+Instructions: Ensure you download all files, including .safetensors, config.json, tokenizer.json, and all .py script files.
+
+2. Local Weight Placement
+To ensure the scripts can find the model using relative paths, place the weights in the following directory:
 
 Plaintext
-InternVL-Project/
-── model/ 
-------VL3.5-2b/          # Downloaded HuggingFace weights here
-── examples/              # Input videos (e.g., test_video3.mp4)
----─ scripts/               # Project Python scripts
---outputs/               # Result logs and annotated videos
-3. Installation
-This project is designed to run in your existing environment without the need for a new virtual environment if preferred. Install the core dependencies below:
+C:\Users\LENOVO\InternVL\model\VL3.5-2b\
 
 Bash
 # Install PyTorch for CUDA 12.1
